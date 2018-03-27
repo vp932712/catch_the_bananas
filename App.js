@@ -85,9 +85,20 @@ export default class App extends React.Component {
     // if not create additional banana
   }
 
+
+  addPoints() {
+    this.setState({
+      points: this.state.points + 1
+    })
+  }
+
+  resetBanana() {
+
+  }
+
   checkCollision() {
-    if(Math.abs(this.state.monkeyX - this.state.bananaX) < 5){
-      if(Math.abs(this.state.monkeyY === this.state.bananaY) < 5){
+    if(Math.abs(this.state.monkeyX - this.state.bananaX) < 50){
+      if(Math.abs(this.state.monkeyY - this.state.bananaY) < 50){
         return true;
       }
     }
@@ -96,7 +107,7 @@ export default class App extends React.Component {
 
 
   checkBananaHitGround(){
-    if(this.state.bananaY < Dimensions.get("window").height){
+    if(this.state.bananaY > Dimensions.get("window").height){
       return true;
     }
     return false;
