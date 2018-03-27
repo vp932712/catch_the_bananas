@@ -21,12 +21,12 @@ export default class App extends React.Component {
     moveMonkeyValue: new Animated.Value(40),
     monkeyX: 185,
     movebananaValue: new Animated.Value(50),
-    bananaX: 0,
+    bananaX: 10,
     points: 0,
     bananaSide: "Right",
     bananaY: 10, // need to work on speed
     gameOver: false,
-    monkeyY: 10
+    monkeyY: Dimensions.get("window").height - 150 
   }
 
 
@@ -49,6 +49,7 @@ export default class App extends React.Component {
 
   componentDidMount() {
     console.log("mounting comp")
+    this.placeBanana();
     setInterval(()=>{
       this.checkBanana()
       if(this.state.gameOver === false){
@@ -74,8 +75,8 @@ export default class App extends React.Component {
 
   checkBanana() {
     if (this.checkCollision()){
-      console.log("add points and create new banana")
-
+      this.addPoints()
+      this.placeBanana()
     }else if (this.checkBananaHitGround()) {
       console.log("game over ")
     }
@@ -97,6 +98,10 @@ export default class App extends React.Component {
   }
 
   checkCollision() {
+    console.log( `bananaX ${this.state.bananaX}, ${this.state.bananaY}`)
+    console.log( `monkeyX ${this.state.monkeyX}, ${this.state.monkeyY}`)
+
+
     if(Math.abs(this.state.monkeyX - this.state.bananaX) < 50){
       if(Math.abs(this.state.monkeyY - this.state.bananaY) < 50){
         return true;
@@ -113,15 +118,26 @@ export default class App extends React.Component {
     return false;
   }
 
+
+
+  placeBanana() {
+    let bananaX = Math.floor(Math.random() * Dimensions.get("window").width) + 1;
+    let bananaY = 10
+    this.setState({
+      bananaX: bananaX,
+      bananaY: bananaY
+    })
+  }
+
   fallingBananas() {
 
     this.state.movebananaValue.setValue(-100);
     let distance = Dimensions.get("window").height
 
-    let bananaX = Math.floor(Math.random() * Dimensions.get("window").width) + 1;
-    this.setState({
-      bananaX: bananaX
-    })
+
+
+
+
 
     let getNew;
 
@@ -190,7 +206,7 @@ export default class App extends React.Component {
         width: 75,
         position: "absolute",
         zIndex: 1,
-        bottom: this.state.monkeyY,
+        top: this.state.monkeyY,
         resizeMode: "stretch",
         transform: [{
           translateX: this.state.moveMonkeyValue
