@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import Banana from "./Banana"
 
-
 export default class App extends React.Component {
 
   state = {
@@ -24,68 +23,50 @@ export default class App extends React.Component {
     bananaX: 10,
     points: 0,
     bananaSide: "Right",
-    bananaY: 10, // need to work on speed
+    bananaY: 10,
     gameOver: false,
-    monkeyY: Dimensions.get("window").height - 150 
+    monkeyY: Dimensions.get("window").height - 150
   }
-
-
-
 
   moveMonkey = (evt) => {
-    this.setState({
-      monkeyX: evt.nativeEvent.locationX
-    });
-    Animated.spring(
-      this.state.moveMonkeyValue, {
-        toValue: this.state.monkeyX,
-        tension: 75
-      }
-    ).start();
+    this.setState({monkeyX: evt.nativeEvent.locationX});
+    Animated.spring(this.state.moveMonkeyValue, {
+      toValue: this.state.monkeyX,
+      tension: 75
+    }).start();
   }
-
-
-
 
   componentDidMount() {
-    console.log("mounting comp")
-    this.placeBanana();
-    setInterval(()=>{
+    let refreshIntervalId = setInterval(() => {
       this.checkBanana()
-      if(this.state.gameOver === false){
+      if (this.state.gameOver === false) {
         this.advanceAnimation();
-      }else{
+      } else {
         this.gameOver()
+        clearInterval(refreshIntervalId);
       }
-    },1000)
+    }, 1000)
   }
 
+  firstBanana() {}
   advanceAnimation() {
     this.setState({
-      bananaY: this.state.bananaY + 50
+      bananaY: this.state.bananaY + 100
     });
-    Animated.spring(
-      this.state.movebananaValue, {
-        toValue: this.state.bananaY,
-        tension: 75
-      }
-    ).start();
+    Animated.timing(this.state.movebananaValue, {
+      toValue: this.state.bananaY,
+      duration: 1000
+    }).start();
   }
-
 
   checkBanana() {
-    if (this.checkCollision()){
+    if (this.checkCollision()) {
       this.addPoints()
-      this.placeBanana()
-    }else if (this.checkBananaHitGround()) {
-      console.log("game over ")
+      this.resetBanana()
+    } else if (this.checkBananaHitGround()) {
+      this.gameOver();
     }
-
-
-    // if the banana hits the ground set the state to game over
-    // if not create additional banana
   }
-
 
   addPoints() {
     this.setState({
@@ -93,149 +74,96 @@ export default class App extends React.Component {
     })
   }
 
-  resetBanana() {
-
-  }
-
   checkCollision() {
-    console.log( `bananaX ${this.state.bananaX}, ${this.state.bananaY}`)
-    console.log( `monkeyX ${this.state.monkeyX}, ${this.state.monkeyY}`)
+    console.log(`monkey ${this.state.monkeyX}, `);
+    console.log(`banana ${this.state.bananaX}`)
 
-
-    if(Math.abs(this.state.monkeyX - this.state.bananaX) < 50){
-      if(Math.abs(this.state.monkeyY - this.state.bananaY) < 50){
+    if (Math.abs(this.state.monkeyX - this.state.bananaX) < 50) {
+      if (Math.abs(this.state.monkeyY - this.state.bananaY) < 50) {
         return true;
       }
     }
     return false;
   }
 
-
-  checkBananaHitGround(){
-    if(this.state.bananaY > Dimensions.get("window").height){
+  checkBananaHitGround() {
+    if (this.state.bananaY > Dimensions.get("window").height) {
       return true;
     }
     return false;
   }
 
-
-
-  placeBanana() {
+  resetBanana() {
     let bananaX = Math.floor(Math.random() * Dimensions.get("window").width) + 1;
     let bananaY = 10
-    this.setState({
-      bananaX: bananaX,
-      bananaY: bananaY
-    })
+    this.setState({bananaX: bananaX, bananaY: bananaY})
   }
 
-  fallingBananas() {
-
-    this.state.movebananaValue.setValue(-100);
-    let distance = Dimensions.get("window").height
-
-
-
-
-
-
-    let getNew;
-
-    getNew = setInterval( () => {
-      if (this.state.movebananaValue._value > distance - 280 && this.state.movebananaValue._value < distance - 180 && this.state.monkeySide == this.state.bananaSide){
-        clearInterval(getNew);
-        this.setState({
-          gameOver: true
-        })
-        this.gameOver();
-      }
-    },25)
-
-
-    Animated.timing(
-      this.state.movebananaValue,
-      {
-        duration: this.state.bananaSpeed
-      }
-    ).start(e =>{
-      console.log(this.state);
-      if(e.finished && this.state.gameOver == false){
-        clearInterval(getNew)
-        this.setState({
-          points: ++this.state.points
-        })
-        this.fallingBananas();
-      }
-
-    })
-
-
-    setInterval( () => {
-      this.setState({
-        bananaY: this.state.bananaSpeed - 50
-      })
-    }, 1000)
-
-
-
-  }
-
-
-
-
-
-
-
-  gameOver(){
-    Alert.alert("You lost!")
+  gameOver() {
+    this.setState({gameOver: true})
   }
 
   render() {
-    return (
+    return (<TouchableWithoutFeedback onPress={this.moveMonkey}>
 
-      <TouchableWithoutFeedback onPress={this.moveMonkey}>
+      <SafeAreaView style={{
+          flex: 1
+        }}>
 
-      <SafeAreaView style={{flex: 1}}>
+        <ImageBackground source={require('./assets/banana_tree_31.png')} style={{
+            flex: 1,
+            position: "relative"
+          }}>
 
-      <ImageBackground source={require('./assets/banana_tree_31.png')}
-      style = {{flex: 1,position: "relative"}}>
+          <Animated.Image source={require("./assets/right.png")} style={{
+              height: 75,
+              width: 75,
+              position: "absolute",
+              zIndex: 1,
+              top: this.state.monkeyY,
+              resizeMode: "stretch",
+              transform: [
+                {
+                  translateX: this.state.moveMonkeyValue
+                }
+              ]
+            }}></Animated.Image>
 
-      <Animated.Image source={require("./assets/right.png")}
-      style = {{
-        height: 75,
-        width: 75,
-        position: "absolute",
-        zIndex: 1,
-        top: this.state.monkeyY,
-        resizeMode: "stretch",
-        transform: [{
-          translateX: this.state.moveMonkeyValue
-        }]
-      }}>
-      </Animated.Image>
+          <Banana bananaStartposX={this.state.bananaX} movebananaValue={this.state.movebananaValue}/>
 
-      <Banana bananaStartposX={this.state.bananaStartposX}
-      movebananaValue={this.state.movebananaValue}/>
+          <View style={{
+              flex: 1,
+              alignItems: "center",
+              marginTop: 10
+            }}>
+            <View style={styles.points}>
+              <Text style={{
+                  fontWeight: "bold",
+                  fontSize: 30
+                }}>
+                {this.state.points}
+                <Image source={require('./assets/banana.png')} style={{
+                    width: 35,
+                    height: 25
+                  }}/>
+              </Text>
+              <Text style={{
+                  display: this.state.gameOver
+                    ? "flex"
+                    : "none"
+                }}>
+                GAME Over
+              </Text>
+            </View>
+          </View>
 
-      <View style={{flex: 1, alignItems: "center", marginTop: 10}}>
-      <View style={styles.points}>
-      <Text style={{fontWeight: "bold", fontSize: 30}}>
-      {this.state.points}
-      <Image source={require('./assets/banana.png')} style={{width: 35, height: 25}}/>
-      </Text>
-      </View>
-      </View>
-
-      </ImageBackground>
+        </ImageBackground>
 
       </SafeAreaView>
 
-      </TouchableWithoutFeedback>
-    );
+    </TouchableWithoutFeedback>);
   }
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -246,7 +174,7 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: 'row',
     justifyContent: "center",
-    alignItems: 'flex-end',
+    alignItems: 'flex-end'
   },
   points: {
     width: 100,
@@ -257,17 +185,3 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   }
 });
-
-
-
-
-
-//
-//
-
-
-
-// <View style={styles.controls}>
-// <Text style={styles.left} onPress={()=>this.moveMonkey("left")}></Text>
-// <Text style={styles.right}onPress={()=>this.moveMonkey("right")}></Text>
-// </View>
